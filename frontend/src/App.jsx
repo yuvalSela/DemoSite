@@ -108,7 +108,7 @@ function App() {
                   Next Payroll
                   <CreditCard size={16} />
                 </div>
-                <div className="metric-value" style={{fontSize: '1.5rem', marginTop: '0.25rem'}}>Oct 31, 2023</div>
+                <div className="metric-value" style={{fontSize: '1.5rem', marginTop: '0.25rem'}}>Apr 10, 2026</div>
                 <div className="metric-trend" style={{color: 'var(--text-secondary)'}}>
                   <span>Approvals due in 2 days</span>
                 </div>
