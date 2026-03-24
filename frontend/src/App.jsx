@@ -63,7 +63,7 @@ function App() {
           <>
             <div className="page-header">
               <h1 className="page-title">Company Overview</h1>
-              <div style={{color: 'var(--text-secondary)'}}>Oct 15 - Oct 31, 2023</div>
+              <div style={{color: 'var(--text-secondary)'}}>Fiscal Q2 - 2026</div>
             </div>
 
             <div className="metrics-grid">
