@@ -1,0 +1,15 @@
+services:
+  backend:
+    image: ${BACKEND_IMAGE}
+    restart: unless-stopped
+
+  web:
+    image: ${WEB_IMAGE}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      SERVER_NAME: ${SERVER_NAME}
+    ports:
+      - "80:80"
+

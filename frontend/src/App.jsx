@@ -35,7 +35,7 @@ function App() {
     
     try {
       // Dummy endpoint, mimicking a pipeline trigger
-      const response = await fetch('http://localhost:8000/api/run-payroll', {
+      const response = await fetch('/api/run-payroll', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ employees_count: 142, cycle_id: 'OCT-2023-B' })
