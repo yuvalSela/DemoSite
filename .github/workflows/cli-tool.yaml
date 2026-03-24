@@ -108,7 +108,7 @@ jobs:
 
         cd "${{ steps.worktree.outputs.worktree_dir }}"
         set +e
-        gemini --approval-mode plan --model "${GEMINI_MODEL}" -p "$(cat "${RUNNER_TEMP}/cli-tool-prompt.txt")" | tee "${RUNNER_TEMP}/gemini-output.txt"
+        gemini --approval-mode yolo --model "${GEMINI_MODEL}" -p "$(cat "${RUNNER_TEMP}/cli-tool-prompt.txt")" | tee "${RUNNER_TEMP}/gemini-output.txt"
         gemini_exit_code=${PIPESTATUS[0]}
         set -e
 
