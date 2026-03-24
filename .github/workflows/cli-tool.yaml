@@ -17,6 +17,11 @@ on:
         required: false
         default: main
         type: string
+      model:
+        description: Gemini model to use for the CLI run
+        required: false
+        default: gemini-2.5-flash
+        type: string
 
 permissions:
   contents: write
@@ -97,11 +102,32 @@ jobs:
       id: gemini
       env:
         GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GEMINI_MODEL: ${{ inputs.model }}
       run: |
         set -euo pipefail
 
         cd "${{ steps.worktree.outputs.worktree_dir }}"
-        gemini --approval-mode plan --model gemini-2.0-flash -p "$(cat "${RUNNER_TEMP}/cli-tool-prompt.txt")" | tee "${RUNNER_TEMP}/gemini-output.txt"
+        set +e
+        gemini --approval-mode plan --model "${GEMINI_MODEL}" -p "$(cat "${RUNNER_TEMP}/cli-tool-prompt.txt")" | tee "${RUNNER_TEMP}/gemini-output.txt"
+        gemini_exit_code=${PIPESTATUS[0]}
+        set -e
+
+        if [ "${gemini_exit_code}" -ne 0 ]; then
+          if grep -q 'TerminalQuotaError' "${RUNNER_TEMP}/gemini-output.txt"; then
+            {
+              echo "Gemini CLI failed because the configured credentials do not currently have quota for model ${GEMINI_MODEL}."
+              echo
+              echo "This workflow uses API key authentication in GitHub Actions. That only works on the free tier when the AI Studio project behind GEMINI_API_KEY still has free-tier quota available."
+              echo
+              echo "Recommended fixes:"
+              echo "- Wait for the free-tier quota window to reset."
+              echo "- Replace GEMINI_API_KEY with a valid AI Studio key on a project that has free-tier quota available."
+              echo "- Configure Vertex AI or paid Gemini API billing if you need reliable CI capacity."
+            } | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
+
+          exit "${gemini_exit_code}"
+        fi
 
     - name: Detect repository changes
       run: |
@@ -154,6 +180,7 @@ jobs:
           echo
           echo "- Branch: ${{ steps.worktree.outputs.branch_name }}"
           echo "- Base branch: ${{ inputs.base_branch }}"
+          echo "- Model: ${{ inputs.model }}"
           echo "- Dry run: ${{ inputs.dry_run }}"
           echo
           echo "### Original context"
