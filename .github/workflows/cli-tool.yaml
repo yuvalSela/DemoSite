@@ -1,0 +1,259 @@
+name: CLI Tool
+
+on:
+  workflow_dispatch:
+    inputs:
+      context:
+        description: Context or task for Gemini CLI to execute against the repository
+        required: true
+        type: string
+      dry_run:
+        description: Run the CLI and validation without pushing a branch or opening a PR
+        required: false
+        default: false
+        type: boolean
+      base_branch:
+        description: Base branch to branch from and target with the PR
+        required: false
+        default: main
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: cli-tool-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cli-tool:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      branch_name: ${{ steps.worktree.outputs.branch_name }}
+      commit_sha: ${{ steps.commit.outputs.commit_sha }}
+      pr_url: ${{ steps.create_pr.outputs.pr_url }}
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        persist-credentials: true
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Verify GitHub CLI is available
+      run: gh --version
+
+    - name: Install Gemini CLI
+      run: npm install -g @google/gemini-cli
+
+    - name: Prepare isolated worktree
+      id: worktree
+      env:
+        BASE_BRANCH: ${{ inputs.base_branch }}
+      run: |
+        set -euo pipefail
+
+        branch_name="internal-assistant/${GITHUB_RUN_ID}"
+        worktree_dir="${RUNNER_TEMP}/cli-tool-worktree-${GITHUB_RUN_ID}"
+
+        git fetch origin "${BASE_BRANCH}"
+        git worktree add --force -B "${branch_name}" "${worktree_dir}" "origin/${BASE_BRANCH}"
+
+        echo "branch_name=${branch_name}" >> "$GITHUB_OUTPUT"
+        echo "worktree_dir=${worktree_dir}" >> "$GITHUB_OUTPUT"
+
+    - name: Build Gemini prompt contract
+      env:
+        CLI_CONTEXT: ${{ inputs.context }}
+        BASE_BRANCH: ${{ inputs.base_branch }}
+        WORKTREE_DIR: ${{ steps.worktree.outputs.worktree_dir }}
+      run: |
+        cat > "${RUNNER_TEMP}/cli-tool-prompt.txt" <<EOF
+        You are operating inside a GitHub Actions workflow on the repository ${GITHUB_REPOSITORY}.
+
+        Task context:
+        ${CLI_CONTEXT}
+
+        Requirements:
+        - Work only inside the repository checkout in the current working directory.
+        - Make only the minimum repository changes needed to satisfy the request.
+        - Base your work on branch ${BASE_BRANCH}.
+        - Do not push directly to ${BASE_BRANCH}.
+        - Do not change git remotes or repository settings.
+        - Do not commit changes; the workflow will handle git commit and push.
+        - If no repository changes are needed, leave the repository unchanged.
+        - Keep generated changes safe, reviewable, and focused.
+        - At the end of your stdout, include a single line beginning exactly with SUMMARY: followed by a concise summary of the changes.
+        EOF
+
+    - name: Run Gemini CLI in worktree
+      id: gemini
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: |
+        set -euo pipefail
+
+        cd "${{ steps.worktree.outputs.worktree_dir }}"
+        gemini --approval-mode plan -p "$(cat "${RUNNER_TEMP}/cli-tool-prompt.txt")" | tee "${RUNNER_TEMP}/gemini-output.txt"
+
+    - name: Detect repository changes
+      run: |
+        set -euo pipefail
+
+        cd "${{ steps.worktree.outputs.worktree_dir }}"
+        if [ -z "$(git status --porcelain)" ]; then
+          echo "No repository changes were produced." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+        fi
+
+    - name: Run minimal validation
+      run: |
+        set -euo pipefail
+
+        cd "${{ steps.worktree.outputs.worktree_dir }}"
+        git diff --check
+
+        git status --porcelain > "${RUNNER_TEMP}/git-status.txt"
+
+        if grep -qE '^[ MARC?U!D]{2} frontend/' "${RUNNER_TEMP}/git-status.txt"; then
+          npm --prefix frontend ci
+          npm --prefix frontend run lint
+        fi
+
+    - name: Stage changes and build summary
+      id: summary
+      env:
+        CLI_CONTEXT: ${{ inputs.context }}
+      run: |
+        set -euo pipefail
+
+        cd "${{ steps.worktree.outputs.worktree_dir }}"
+        git add -A
+
+        if git diff --cached --quiet; then
+          echo "No staged changes found after git add." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+        fi
+
+        git diff --cached --stat > "${RUNNER_TEMP}/cli-tool-diffstat.txt"
+        model_summary="$(grep '^SUMMARY:' "${RUNNER_TEMP}/gemini-output.txt" | tail -n 1 | sed 's/^SUMMARY:[[:space:]]*//')"
+
+        if [ -z "${model_summary}" ]; then
+          model_summary="No model summary captured from Gemini CLI output."
+        fi
+
+        {
+          echo "## CLI Tool Run"
+          echo
+          echo "- Branch: ${{ steps.worktree.outputs.branch_name }}"
+          echo "- Base branch: ${{ inputs.base_branch }}"
+          echo "- Dry run: ${{ inputs.dry_run }}"
+          echo
+          echo "### Original context"
+          echo
+          echo '```text'
+          printf '%s\n' "${CLI_CONTEXT}"
+          echo '```'
+          echo
+          echo "### Gemini summary"
+          echo
+          printf '%s\n' "${model_summary}"
+          echo
+          echo "### Validation"
+          echo
+          echo "- git diff --check"
+          if grep -qE '^[ MARC?U!D]{2} frontend/' "${RUNNER_TEMP}/git-status.txt"; then
+            echo "- npm --prefix frontend ci"
+            echo "- npm --prefix frontend run lint"
+          else
+            echo "- frontend validation skipped (no frontend changes detected)"
+          fi
+          echo
+          echo "### Diff stat"
+          echo
+          echo '```text'
+          cat "${RUNNER_TEMP}/cli-tool-diffstat.txt"
+          echo '```'
+        } > "${RUNNER_TEMP}/cli-tool-summary.md"
+
+        cat "${RUNNER_TEMP}/cli-tool-summary.md" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload CLI artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: cli-tool-${{ github.run_id }}
+        path: |
+          ${{ runner.temp }}/cli-tool-summary.md
+          ${{ runner.temp }}/cli-tool-diffstat.txt
+          ${{ runner.temp }}/gemini-output.txt
+          ${{ runner.temp }}/git-status.txt
+
+    - name: Stop after dry run
+      if: ${{ inputs.dry_run }}
+      run: |
+        echo "Dry run requested; skipping commit, push, and PR creation." >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Configure git author
+      if: ${{ !inputs.dry_run }}
+      run: |
+        cd "${{ steps.worktree.outputs.worktree_dir }}"
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+    - name: Commit generated changes
+      if: ${{ !inputs.dry_run }}
+      id: commit
+      run: |
+        set -euo pipefail
+
+        cd "${{ steps.worktree.outputs.worktree_dir }}"
+        git commit -m "cli-tool: apply requested changes"
+        echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+    - name: Push generated branch
+      if: ${{ !inputs.dry_run }}
+      run: |
+        cd "${{ steps.worktree.outputs.worktree_dir }}"
+        git push --set-upstream origin "${{ steps.worktree.outputs.branch_name }}"
+
+    - name: Create pull request
+      if: ${{ !inputs.dry_run }}
+      id: create_pr
+      env:
+        GH_TOKEN: ${{ github.token }}
+        CLI_CONTEXT: ${{ inputs.context }}
+      run: |
+        set -euo pipefail
+
+        title_context="$(printf '%s' "${CLI_CONTEXT}" | tr '\n' ' ' | cut -c1-60)"
+        existing_pr="$(gh pr list \
+          --base "${{ inputs.base_branch }}" \
+          --head "${{ steps.worktree.outputs.branch_name }}" \
+          --json url \
+          --jq '.[0].url')"
+
+        if [ -n "${existing_pr}" ] && [ "${existing_pr}" != "null" ]; then
+          echo "A pull request already exists for branch ${{ steps.worktree.outputs.branch_name }}: ${existing_pr}" >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+        fi
+
+        pr_url="$(gh pr create \
+          --base "${{ inputs.base_branch }}" \
+          --head "${{ steps.worktree.outputs.branch_name }}" \
+          --title "cli-tool: ${title_context}" \
+          --body-file "${RUNNER_TEMP}/cli-tool-summary.md")"
+
+        echo "pr_url=${pr_url}" >> "$GITHUB_OUTPUT"
+        echo "Created PR: ${pr_url}" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Clean up worktree
+      if: always()
+      run: |
+        git worktree remove --force "${{ steps.worktree.outputs.worktree_dir }}" 2>/dev/null || true
