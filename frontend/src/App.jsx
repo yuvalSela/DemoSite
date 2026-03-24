@@ -9,7 +9,7 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [toast, setToast] = useState(null);
-  const [employees, setEmployees] = useState([
+  const [employees] = useState([
     { id: 1, name: "Sarah Connor", role: "Engineering Manager", department: "Engineering", status: "active", initials: "SC", email: "sarah.c@talentsync.com" },
     { id: 2, name: "John Smith", role: "Product Designer", department: "Design", status: "active", initials: "JS", email: "john.s@talentsync.com" },
     { id: 3, name: "Emily Chen", role: "Marketing Rep", department: "Marketing", status: "on_leave", initials: "EC", email: "emily.c@talentsync.com" },
@@ -48,7 +48,7 @@ function App() {
       } else {
         throw new Error('Pipeline failed');
       }
-    } catch (error) {
+    } catch {
       setToast({ type: 'error', message: "Failed to trigger payroll pipeline. Ensure backend is running." });
     } finally {
       setPayrollLoading(false);
