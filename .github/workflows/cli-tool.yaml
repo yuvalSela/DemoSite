@@ -101,7 +101,7 @@ jobs:
         set -euo pipefail
 
         cd "${{ steps.worktree.outputs.worktree_dir }}"
-        gemini --approval-mode plan -p "$(cat "${RUNNER_TEMP}/cli-tool-prompt.txt")" | tee "${RUNNER_TEMP}/gemini-output.txt"
+        gemini --approval-mode plan --model gemini-2.0-flash -p "$(cat "${RUNNER_TEMP}/cli-tool-prompt.txt")" | tee "${RUNNER_TEMP}/gemini-output.txt"
 
     - name: Detect repository changes
       run: |
