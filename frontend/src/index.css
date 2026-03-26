@@ -1,18 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-color: #e0e7ed; /* Light blue-gray */
-  --surface-color: #ffffff; /* White */
-  --text-primary: #2c3e50; /* Darker blue-gray */
-  --text-secondary: #7f8c8d; /* Medium blue-gray */
-  --border-color: #d3dbde; /* Lighter blue-gray */
+  --bg-color: #000000; /* Black */
+  --surface-color: #1e1e1e; /* Dark gray */
+  --text-primary: #ffffff; /* White */
+  --text-secondary: #a0a0a0; /* Light gray */
+  --border-color: #333333; /* Darker gray */
   
   --primary: #3498db; /* Blue */
   --primary-hover: #2980b9; /* Darker blue */
-  --primary-light: #d4e6f1; /* Lighter blue */
+  --primary-light: #1a3a50; /* Darker blue for active/hover states */
   
-  --sidebar-bg: #ffffff; /* White */
-  --sidebar-active: #eaf2f8; /* Very light blue */
+  --sidebar-bg: #1e1e1e; /* Dark gray */
+  --sidebar-active: #2a2a2a; /* Slightly lighter dark gray */
   
   --warning: #f39c12; /* Orange */
   --danger: #e74c3c; /* Red */
@@ -27,8 +27,8 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-primary);
+  background-color: #000000;
+  color: #ffffff;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -225,7 +225,7 @@ body {
 }
 
 .metric-card {
-  background-color: red;
+  background-color: var(--surface-color);
   padding: 1.5rem;
   border-radius: 12px;
   border: 1px solid var(--border-color);
