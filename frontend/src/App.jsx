@@ -67,7 +67,7 @@ function App() {
             </div>
 
             <div className="metrics-grid">
-              <div className="metric-card">
+              <div className="metric-card total-employees">
                 <div className="metric-header">
                   Total Employees
                   <Users size={16} />
@@ -79,7 +79,7 @@ function App() {
                 </div>
               </div>
               
-              <div className="metric-card">
+              <div className="metric-card open-positions">
                 <div className="metric-header">
                   Open Positions
                   <Search size={16} />
@@ -91,7 +91,7 @@ function App() {
                 </div>
               </div>
 
-              <div className="metric-card">
+              <div className="metric-card on-leave">
                 <div className="metric-header">
                   On Leave
                   <Calendar size={16} />
@@ -103,7 +103,7 @@ function App() {
                 </div>
               </div>
               
-              <div className="metric-card" style={{borderLeft: '4px solid var(--primary)'}}>
+              <div className="metric-card next-payroll">
                 <div className="metric-header">
                   Next Payroll
                   <CreditCard size={16} />
