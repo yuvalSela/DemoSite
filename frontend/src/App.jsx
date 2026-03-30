@@ -4,7 +4,6 @@ import {
   Search, Bell, HelpCircle, ArrowUpRight, ArrowDownRight,
   CheckCircle2, Loader2, Play, FileText, Check, X
 } from 'lucide-react';
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -81,33 +80,13 @@ function App() {
             </div>
 
             <div className="metrics-grid">
-              {/* Total Employees Pie Chart */}
+              {/* Total Employees */}
               <div className="metric-card total-employees">
                 <div className="metric-header">
                   Total Employees
                   <Users size={16} />
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Active', value: 137, fill: '#27ae60' },
-                        { name: 'On Leave', value: 5, fill: '#e74c3c' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={70}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      <Cell fill="#27ae60" />
-                      <Cell fill="#e74c3c" />
-                    </Pie>
-                    <Tooltip formatter={(value) => value} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '1rem' }}>
                   <div className="metric-value">142</div>
                   <div className="metric-trend trend-up">
                     <ArrowUpRight size={16} />
@@ -116,33 +95,13 @@ function App() {
                 </div>
               </div>
 
-              {/* Open Positions Pie Chart */}
+              {/* Open Positions */}
               <div className="metric-card open-positions">
                 <div className="metric-header">
                   Open Positions
                   <Search size={16} />
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Filled', value: 130, fill: '#3498db' },
-                        { name: 'Open', value: 12, fill: '#f39c12' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={70}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      <Cell fill="#3498db" />
-                      <Cell fill="#f39c12" />
-                    </Pie>
-                    <Tooltip formatter={(value) => value} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '1rem' }}>
                   <div className="metric-value">12</div>
                   <div className="metric-trend trend-up">
                     <ArrowUpRight size={16} />
@@ -151,33 +110,13 @@ function App() {
                 </div>
               </div>
 
-              {/* On Leave Pie Chart */}
+              {/* On Leave */}
               <div className="metric-card on-leave">
                 <div className="metric-header">
                   On Leave
                   <Calendar size={16} />
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'At Work', value: 137, fill: '#27ae60' },
-                        { name: 'On Leave', value: 5, fill: '#e74c3c' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={70}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      <Cell fill="#27ae60" />
-                      <Cell fill="#e74c3c" />
-                    </Pie>
-                    <Tooltip formatter={(value) => value} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '1rem' }}>
                   <div className="metric-value">5</div>
                   <div className="metric-trend trend-down">
                     <ArrowDownRight size={16} />
@@ -186,33 +125,13 @@ function App() {
                 </div>
               </div>
 
-              {/* Next Payroll Status Pie Chart */}
+              {/* Next Payroll */}
               <div className="metric-card next-payroll">
                 <div className="metric-header">
                   Next Payroll
                   <CreditCard size={16} />
                 </div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Approved', value: 140, fill: '#27ae60' },
-                        { name: 'Pending', value: 2, fill: '#f39c12' }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={50}
-                      outerRadius={70}
-                      paddingAngle={2}
-                      dataKey="value"
-                    >
-                      <Cell fill="#27ae60" />
-                      <Cell fill="#f39c12" />
-                    </Pie>
-                    <Tooltip formatter={(value) => value} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
+                <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '1rem' }}>
                   <div className="metric-value" style={{fontSize: '1.1rem', marginTop: '0.25rem'}}>May 15, 2026</div>
                   <div className="metric-trend" style={{color: 'var(--text-secondary)', justifyContent: 'center'}}>
                     <span>Approvals due in 2 days</span>
