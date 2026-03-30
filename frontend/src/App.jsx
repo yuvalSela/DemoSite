@@ -9,6 +9,13 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [settings, setSettings] = useState({
+    emailNotifications: true,
+    payrollReminders: true,
+    darkMode: true,
+    companyName: 'TalentSync Inc.',
+    adminEmail: 'admin@talentsync.com'
+  });
   const [employees] = useState([
     { id: 1, name: "Sarah Connor", role: "Engineering Manager", department: "Engineering", status: "active", initials: "SC", email: "sarah.c@talentsync.com" },
     { id: 2, name: "John Smith", role: "Product Designer", department: "Design", status: "active", initials: "JS", email: "john.s@talentsync.com" },
@@ -295,7 +302,7 @@ function App() {
           <>
             <div className="page-header">
               <h1 className="page-title">Payroll Management</h1>
-              <button 
+              <button
                 className="btn-primary"
                 onClick={handleRunPayroll}
                 disabled={payrollLoading}
@@ -348,6 +355,82 @@ function App() {
             </div>
           </>
         );
+      case 'settings':
+        return (
+          <>
+            <div className="page-header">
+              <h1 className="page-title">Settings</h1>
+            </div>
+
+            <div style={{display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem'}}>
+              {/* Settings Navigation */}
+              <div className="card" style={{height: 'fit-content'}}>
+                <div className="card-body" style={{padding: 0}}>
+                  <div className="settings-nav">
+                    <div className="settings-nav-item active">General</div>
+                    <div className="settings-nav-item">Notifications</div>
+                    <div className="settings-nav-item">Security</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Settings Content */}
+              <div className="card">
+                <div className="card-header">General Settings</div>
+                <div className="card-body">
+                  <div className="settings-group">
+                    <label className="settings-label">Company Name</label>
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={settings.companyName}
+                      onChange={(e) => setSettings({...settings, companyName: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="settings-group">
+                    <label className="settings-label">Admin Email</label>
+                    <input
+                      type="email"
+                      className="settings-input"
+                      value={settings.adminEmail}
+                      onChange={(e) => setSettings({...settings, adminEmail: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="settings-group">
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                      <label className="settings-label" style={{margin: 0}}>Email Notifications</label>
+                      <input
+                        type="checkbox"
+                        className="settings-checkbox"
+                        checked={settings.emailNotifications}
+                        onChange={(e) => setSettings({...settings, emailNotifications: e.target.checked})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="settings-group">
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                      <label className="settings-label" style={{margin: 0}}>Payroll Reminders</label>
+                      <input
+                        type="checkbox"
+                        className="settings-checkbox"
+                        checked={settings.payrollReminders}
+                        onChange={(e) => setSettings({...settings, payrollReminders: e.target.checked})}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{marginTop: '2rem', display: 'flex', gap: '1rem'}}>
+                    <button className="btn-primary">Save Changes</button>
+                    <button className="btn-secondary">Cancel</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        );
       default:
         return <div>Select a tab</div>;
     }
@@ -379,7 +462,7 @@ function App() {
             <CreditCard size={20} />
             Payroll
           </div>
-          <div className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', position: 'absolute', bottom: '1rem', width: '250px' }}>
+          <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} style={{ marginTop: 'auto', borderTop: '1px solid var(--border-color)', position: 'absolute', bottom: '1rem', width: '250px' }} onClick={() => setActiveTab('settings')}>
             <Settings size={20} />
             Settings
           </div>
