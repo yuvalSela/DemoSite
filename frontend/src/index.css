@@ -17,6 +17,7 @@
   --warning: #f39c12; /* Orange */
   --danger: #e74c3c; /* Red */
   --success: #27ae60; /* Green */
+  --yellow: #f1c40f; /* Yellow */
 }
 
 * {
@@ -233,7 +234,7 @@ body {
 }
 
 .metric-card.total-employees {
-  border-left: 4px solid var(--primary);
+  border-left: 4px solid var(--yellow);
 }
 
 .metric-card.open-positions {
