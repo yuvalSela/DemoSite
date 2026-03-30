@@ -1,9 +1,72 @@
 import React, { useState } from 'react';
-import { 
-  Users, Calendar, CreditCard, Settings, LayoutDashboard, 
+import {
+  Users, Calendar, CreditCard, Settings, LayoutDashboard,
   Search, Bell, HelpCircle, ArrowUpRight, ArrowDownRight,
   CheckCircle2, Loader2, Play, FileText, Check, X
 } from 'lucide-react';
+
+// Pie Chart Component
+const PieChart = ({ data }) => {
+  let currentAngle = 0;
+  const segments = [];
+  const colors = ['#f1c40f', '#f39c12', '#e74c3c', '#27ae60'];
+  const total = data.reduce((sum, item) => sum + item.value, 0);
+
+  data.forEach((item, index) => {
+    const sliceAngle = (item.value / total) * 360;
+    const startAngle = currentAngle;
+    const endAngle = currentAngle + sliceAngle;
+
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+
+    const x1 = 100 + 85 * Math.cos(startRad);
+    const y1 = 100 + 85 * Math.sin(startRad);
+    const x2 = 100 + 85 * Math.cos(endRad);
+    const y2 = 100 + 85 * Math.sin(endRad);
+
+    const largeArc = sliceAngle > 180 ? 1 : 0;
+
+    const pathData = [
+      `M 100 100`,
+      `L ${x1} ${y1}`,
+      `A 85 85 0 ${largeArc} 1 ${x2} ${y2}`,
+      'Z'
+    ].join(' ');
+
+    segments.push(
+      <path key={index} d={pathData} fill={colors[index]} opacity="0.9" stroke="none" />
+    );
+
+    currentAngle = endAngle;
+  });
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', justifyContent: 'center' }}>
+      <svg width="200" height="200" viewBox="0 0 200 200" style={{ flexShrink: 0 }}>
+        {segments}
+      </svg>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {data.map((item, index) => (
+          <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div
+              style={{
+                width: '12px',
+                height: '12px',
+                borderRadius: '2px',
+                backgroundColor: colors[index],
+                opacity: '0.9'
+              }}
+            />
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-primary)' }}>
+              {item.label}: <strong>{item.value}</strong> ({Math.round((item.value / total) * 100)}%)
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -79,52 +142,17 @@ function App() {
               <div style={{color: 'var(--text-secondary)'}}>Fiscal Q2 - 2026</div>
             </div>
 
-            <div className="metrics-grid">
-              <div className="metric-card total-employees">
-                <div className="metric-header">
-                  Total Employees
-                  <Users size={16} />
-                </div>
-                <div className="metric-value">142</div>
-                <div className="metric-trend trend-up">
-                  <ArrowUpRight size={16} />
-                  <span>+4 this month</span>
-                </div>
-              </div>
-              
-              <div className="metric-card open-positions">
-                <div className="metric-header">
-                  Open Positions
-                  <Search size={16} />
-                </div>
-                <div className="metric-value">12</div>
-                <div className="metric-trend trend-up">
-                  <ArrowUpRight size={16} />
-                  <span>+2 this month</span>
-                </div>
-              </div>
-
-              <div className="metric-card on-leave">
-                <div className="metric-header">
-                  On Leave
-                  <Calendar size={16} />
-                </div>
-                <div className="metric-value">5</div>
-                <div className="metric-trend trend-down">
-                  <ArrowDownRight size={16} />
-                  <span>-1 from last week</span>
-                </div>
-              </div>
-              
-              <div className="metric-card next-payroll">
-                <div className="metric-header">
-                  Next Payroll
-                  <CreditCard size={16} />
-                </div>
-                <div className="metric-value" style={{fontSize: '1.5rem', marginTop: '0.25rem'}}>May 15, 2026</div>
-                <div className="metric-trend" style={{color: 'var(--text-secondary)'}}>
-                  <span>Approvals due in 2 days</span>
-                </div>
+            <div className="card" style={{ marginBottom: '2rem' }}>
+              <div className="card-header">Company Metrics Overview</div>
+              <div className="card-body">
+                <PieChart
+                  data={[
+                    { label: 'Total Employees', value: 142 },
+                    { label: 'Open Positions', value: 12 },
+                    { label: 'On Leave', value: 5 },
+                    { label: 'Approvals Due', value: 2 }
+                  ]}
+                />
               </div>
             </div>
 
