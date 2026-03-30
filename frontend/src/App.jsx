@@ -9,12 +9,18 @@ function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [payrollLoading, setPayrollLoading] = useState(false);
   const [toast, setToast] = useState(null);
+  const [activeSettingsTab, setActiveSettingsTab] = useState('general');
   const [settings, setSettings] = useState({
     emailNotifications: true,
     payrollReminders: true,
     darkMode: true,
     companyName: 'TalentSync Inc.',
-    adminEmail: 'admin@talentsync.com'
+    adminEmail: 'admin@talentsync.com',
+    notificationEmails: true,
+    weeklyReports: true,
+    payrollAlerts: true,
+    twoFactorEnabled: false,
+    sessionTimeout: '30'
   });
   const [employees] = useState([
     { id: 1, name: "Sarah Connor", role: "Engineering Manager", department: "Engineering", status: "active", initials: "SC", email: "sarah.c@talentsync.com" },
@@ -367,66 +373,181 @@ function App() {
               <div className="card" style={{height: 'fit-content'}}>
                 <div className="card-body" style={{padding: 0}}>
                   <div className="settings-nav">
-                    <div className="settings-nav-item active">General</div>
-                    <div className="settings-nav-item">Notifications</div>
-                    <div className="settings-nav-item">Security</div>
+                    <div
+                      className={`settings-nav-item ${activeSettingsTab === 'general' ? 'active' : ''}`}
+                      onClick={() => setActiveSettingsTab('general')}
+                    >
+                      General
+                    </div>
+                    <div
+                      className={`settings-nav-item ${activeSettingsTab === 'notifications' ? 'active' : ''}`}
+                      onClick={() => setActiveSettingsTab('notifications')}
+                    >
+                      Notifications
+                    </div>
+                    <div
+                      className={`settings-nav-item ${activeSettingsTab === 'security' ? 'active' : ''}`}
+                      onClick={() => setActiveSettingsTab('security')}
+                    >
+                      Security
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Settings Content */}
               <div className="card">
-                <div className="card-header">General Settings</div>
-                <div className="card-body">
-                  <div className="settings-group">
-                    <label className="settings-label">Company Name</label>
-                    <input
-                      type="text"
-                      className="settings-input"
-                      value={settings.companyName}
-                      onChange={(e) => setSettings({...settings, companyName: e.target.value})}
-                    />
-                  </div>
+                {activeSettingsTab === 'general' && (
+                  <>
+                    <div className="card-header">General Settings</div>
+                    <div className="card-body">
+                      <div className="settings-group">
+                        <label className="settings-label">Company Name</label>
+                        <input
+                          type="text"
+                          className="settings-input"
+                          value={settings.companyName}
+                          onChange={(e) => setSettings({...settings, companyName: e.target.value})}
+                        />
+                        <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem'}}>The official name of your company</p>
+                      </div>
 
-                  <div className="settings-group">
-                    <label className="settings-label">Admin Email</label>
-                    <input
-                      type="email"
-                      className="settings-input"
-                      value={settings.adminEmail}
-                      onChange={(e) => setSettings({...settings, adminEmail: e.target.value})}
-                    />
-                  </div>
+                      <div className="settings-group">
+                        <label className="settings-label">Admin Email</label>
+                        <input
+                          type="email"
+                          className="settings-input"
+                          value={settings.adminEmail}
+                          onChange={(e) => setSettings({...settings, adminEmail: e.target.value})}
+                        />
+                        <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem'}}>Primary contact email for administrative notifications</p>
+                      </div>
 
-                  <div className="settings-group">
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                      <label className="settings-label" style={{margin: 0}}>Email Notifications</label>
-                      <input
-                        type="checkbox"
-                        className="settings-checkbox"
-                        checked={settings.emailNotifications}
-                        onChange={(e) => setSettings({...settings, emailNotifications: e.target.checked})}
-                      />
+                      <div className="settings-group">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <div>
+                            <label className="settings-label" style={{margin: 0}}>Dark Mode</label>
+                            <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0'}}>Currently enabled</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="settings-checkbox"
+                            checked={settings.darkMode}
+                            onChange={(e) => setSettings({...settings, darkMode: e.target.checked})}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{marginTop: '2rem', display: 'flex', gap: '1rem'}}>
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Cancel</button>
+                      </div>
                     </div>
-                  </div>
+                  </>
+                )}
 
-                  <div className="settings-group">
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
-                      <label className="settings-label" style={{margin: 0}}>Payroll Reminders</label>
-                      <input
-                        type="checkbox"
-                        className="settings-checkbox"
-                        checked={settings.payrollReminders}
-                        onChange={(e) => setSettings({...settings, payrollReminders: e.target.checked})}
-                      />
+                {activeSettingsTab === 'notifications' && (
+                  <>
+                    <div className="card-header">Notification Settings</div>
+                    <div className="card-body">
+                      <div className="settings-group">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <div>
+                            <label className="settings-label" style={{margin: 0}}>Email Notifications</label>
+                            <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0'}}>Receive updates about payroll and employee changes</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="settings-checkbox"
+                            checked={settings.emailNotifications}
+                            onChange={(e) => setSettings({...settings, emailNotifications: e.target.checked})}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="settings-group">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <div>
+                            <label className="settings-label" style={{margin: 0}}>Weekly Reports</label>
+                            <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0'}}>Get weekly summary reports via email</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="settings-checkbox"
+                            checked={settings.weeklyReports}
+                            onChange={(e) => setSettings({...settings, weeklyReports: e.target.checked})}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="settings-group">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <div>
+                            <label className="settings-label" style={{margin: 0}}>Payroll Alerts</label>
+                            <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0'}}>Get instant alerts for payroll events and approvals</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="settings-checkbox"
+                            checked={settings.payrollAlerts}
+                            onChange={(e) => setSettings({...settings, payrollAlerts: e.target.checked})}
+                          />
+                        </div>
+                      </div>
+
+                      <div style={{marginTop: '2rem', display: 'flex', gap: '1rem'}}>
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Cancel</button>
+                      </div>
                     </div>
-                  </div>
+                  </>
+                )}
 
-                  <div style={{marginTop: '2rem', display: 'flex', gap: '1rem'}}>
-                    <button className="btn-primary">Save Changes</button>
-                    <button className="btn-secondary">Cancel</button>
-                  </div>
-                </div>
+                {activeSettingsTab === 'security' && (
+                  <>
+                    <div className="card-header">Security Settings</div>
+                    <div className="card-body">
+                      <div className="settings-group">
+                        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                          <div>
+                            <label className="settings-label" style={{margin: 0}}>Two-Factor Authentication</label>
+                            <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.25rem 0 0'}}>Add an extra layer of security to your account</p>
+                          </div>
+                          <input
+                            type="checkbox"
+                            className="settings-checkbox"
+                            checked={settings.twoFactorEnabled}
+                            onChange={(e) => setSettings({...settings, twoFactorEnabled: e.target.checked})}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="settings-group">
+                        <label className="settings-label">Session Timeout (minutes)</label>
+                        <input
+                          type="number"
+                          className="settings-input"
+                          value={settings.sessionTimeout}
+                          onChange={(e) => setSettings({...settings, sessionTimeout: e.target.value})}
+                          min="5"
+                          max="480"
+                        />
+                        <p style={{fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.25rem'}}>Automatically log out after inactivity (5-480 minutes)</p>
+                      </div>
+
+                      <div className="settings-group">
+                        <button className="btn-secondary" style={{width: '100%', justifyContent: 'center'}}>
+                          Change Password
+                        </button>
+                      </div>
+
+                      <div style={{marginTop: '2rem', display: 'flex', gap: '1rem'}}>
+                        <button className="btn-primary">Save Changes</button>
+                        <button className="btn-secondary">Cancel</button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </>
